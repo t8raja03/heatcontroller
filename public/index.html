@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+		<title>Car pre-heater control</title>
+		<style>
+			body {
+				background-color: #222222
+			}
+			input[type=checkbox] {
+				transform: scale(2);
+			}
+			form {
+				transform: scale(2);
+			} 
+		</style>
+	</head>
+
+	<body style="color: #eeeeee">
+		<br><br>
+		<div class="w3-row w3-container">
+			<div class="w3-container w3-center">
+			<input type="checkbox" id="main" class="w3-button w3-black w3-xxlarge">
+			<h2>System on/off</h2>
+			</div>
+			<div class="w3-center" hidden>
+				<img src="icon.png" style="width:75%;">
+			</div>
+			</div>
+			<br><br>
+			<div class="w3-row">
+				<div class="w3-half w3-container w3-center">
+				<h3 id="temperature">Temperature: -- degrees</h3>
+				</div>
+				<div class="w3-half w3-container w3-center">
+				<h3 id="voltage">Voltage: --V</h3>
+				</div>
+			</div>
+			<br><br>
+			</div>
+
+			<div class="w3-row w3-container w3-center">
+				<form>
+				  <input type="radio" id="0" name="mode" value="0" checked>
+				  <label for="0">Automatic mode</label><br>
+				  <input type="radio" id="1" name="mode" value="1">
+				  <label for="1">Charger only</label><br>
+				  <input type="radio" id="2" name="mode" value="2">
+				  <label for="2">Pre-heater only</label>
+				</form>
+				<br><br>
+				<p>Please turn system off before switching modes</p>
+			</div>
+
+		<script>
+			var socket = io(); 					//load socket.io-client and connect to the host that serves the page
+			window.addEventListener("load", function(){ 		//when page loads
+			  	var mainswitch = document.getElementById("main");
+			  	mainswitch.addEventListener("change", function() { 	//add event listener for when checkbox changes
+			  	//socket.emit("main", Number(this.checked)); 		//send button status to server (as 1 or 0)
+				  if (document.getElementById("main").checked && document.getElementById("0").checked)
+			  		socket.emit("main", 1);
+				  else if (document.getElementById("main").checked && document.getElementById("1").checked)
+			  		socket.emit("main", 2);
+				  else if (document.getElementById("main").checked && document.getElementById("2").checked)
+			  		socket.emit("main", 3);
+				  else
+			  		socket.emit("main", 0);
+			  	});
+			});
+			socket.on('main', function (data) { 			//get button status from client
+			  document.getElementById("main").checked = data; 	//change checkbox according to push button on Raspberry Pi
+			  socket.emit("main", data); 				//send push button status to back to server
+			});
+			socket.on('voltage_received', function (vdata) { 			//get button status from client
+			  document.getElementById("voltage").innerHTML = "Voltage: " + vdata + "V";
+			});
+			socket.on('temperature_received', function (tdata) { 			//get button status from client
+			  document.getElementById("temperature").innerHTML = "Temperature: " + tdata + " degrees";
+			});
+		</script>
+	</body>
+</html>
+
